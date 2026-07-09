@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Local training data and generated models.
+data/
+models/
+
+# Local OS/editor files.
+.DS_Store
+.idea/
+.vscode/
