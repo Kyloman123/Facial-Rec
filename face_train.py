@@ -1,42 +1,69 @@
+"""Train an OpenCV LBPH face recognizer from collected images."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+
 import cv2
-import os
 import numpy as np
 
-FACES_DIR = '/Users/gulickg/Desktop/known_faces'
 
-recognizer = cv2.face.LBPHFaceRecognizer_create()
+DEFAULT_DATA_DIR = Path("data/faces")
+DEFAULT_MODEL_PATH = Path("models/face_model.yml")
+DEFAULT_LABELS_PATH = Path("models/face_labels.json")
 
-faces = []
-labels = []
-label_map = {}
-current_label = 0
 
-print("Loading face data...")
-for person_name in os.listdir(FACES_DIR):
-    person_dir = f"{FACES_DIR}/{person_name}"
-    if not os.path.isdir(person_dir):
-        continue
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Train the face recognizer.")
+    parser.add_argument("--data-dir", type=Path, default=DEFAULT_DATA_DIR)
+    parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
+    parser.add_argument("--labels", type=Path, default=DEFAULT_LABELS_PATH)
+    return parser.parse_args()
 
-    label_map[current_label] = person_name
-    print(f"  Loading {person_name}...")
 
-    for img_file in os.listdir(person_dir):
-        if img_file.endswith('.jpg'):
-            img_path = f"{person_dir}/{img_file}"
-            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
-            if img is not None:
-                faces.append(img)
-                labels.append(current_label)
+def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dict[int, str]]:
+    images: list[np.ndarray] = []
+    label_ids: list[int] = []
+    labels: dict[int, str] = {}
 
-    current_label += 1
+    people = sorted(path for path in data_dir.iterdir() if path.is_dir())
+    if not people:
+        raise RuntimeError(f"No training folders found in {data_dir}.")
 
-print(f"\nTraining on {len(faces)} images across {len(label_map)} people...")
-recognizer.train(faces, np.array(labels))
-recognizer.save('/Users/gulickg/Desktop/face_model.yml')
+    for label_id, person_dir in enumerate(people):
+        labels[label_id] = person_dir.name
+        for image_path in sorted(person_dir.glob("*")):
+            image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+            if image is None:
+                continue
+            images.append(cv2.resize(image, (150, 150)))
+            label_ids.append(label_id)
 
-import json
-with open('/Users/gulickg/Desktop/face_labels.json', 'w') as f:
-    json.dump({str(k): v for k, v in label_map.items()}, f)
+    if not images:
+        raise RuntimeError(f"No readable training images found in {data_dir}.")
 
-print("Done! Saved face_model.yml and face_labels.json")
-print("Now run recognizer.py!")
+    return images, label_ids, labels
+
+
+def main() -> None:
+    args = parse_args()
+    images, label_ids, labels = load_training_data(args.data_dir)
+
+    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer.train(images, np.array(label_ids))
+
+    args.model.parent.mkdir(parents=True, exist_ok=True)
+    recognizer.write(str(args.model))
+
+    args.labels.parent.mkdir(parents=True, exist_ok=True)
+    args.labels.write_text(json.dumps(labels, indent=2), encoding="utf-8")
+
+    print(f"Trained {len(labels)} labels from {len(images)} images.")
+    print(f"Model: {args.model}")
+    print(f"Labels: {args.labels}")
+
+
+if __name__ == "__main__":
+    main()
