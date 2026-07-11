@@ -20,6 +20,7 @@ This project is designed as a local demo. Training images and generated model fi
 ├── face_collect.py     # Webcam data collection
 ├── face_train.py       # Model training
 ├── recognizer.py       # Live recognition
+├── examples/           # Safe sample outputs
 ├── requirements.txt    # Python dependencies
 └── .gitignore          # Keeps private data and models out of Git
 ```
@@ -62,6 +63,8 @@ This creates:
 models/face_model.yml
 models/face_labels.json
 ```
+
+See `examples/face_labels.sample.json` for the label format without using real face data.
 
 ## 3. Run Recognition
 
