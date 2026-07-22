@@ -28,6 +28,14 @@ def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dic
     label_ids: list[int] = []
     labels: dict[int, str] = {}
 
+    if not data_dir.exists():
+        raise RuntimeError(
+            f"Training data directory {data_dir} does not exist. "
+            "Run `python face_collect.py --name <label>` first."
+        )
+    if not data_dir.is_dir():
+        raise RuntimeError(f"Training data path {data_dir} is not a directory.")
+
     people = sorted(path for path in data_dir.iterdir() if path.is_dir())
     if not people:
         raise RuntimeError(f"No training folders found in {data_dir}.")
