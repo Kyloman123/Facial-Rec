@@ -18,7 +18,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples", type=int, default=80, help="Number of face samples to save.")
     parser.add_argument("--camera", type=int, default=0, help="Webcam index.")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.samples < 1:
+        parser.error("--samples must be at least 1.")
+    return args
 
 
 def clean_label(label: str) -> str:
