@@ -82,6 +82,14 @@ python recognizer.py --model models/face_model.yml --labels models/face_labels.j
 
 Press `q` to quit.
 
+## Smoke Check
+
+Run the non-camera smoke check after setup to verify the sample labels file and basic validation paths:
+
+```bash
+python smoke_test.py
+```
+
 ## Privacy Notes
 
 Face images and trained model files can contain biometric information. They are intentionally excluded from Git by `.gitignore`.
