@@ -37,9 +37,29 @@ def load_recognizer(model_path: Path, labels_path: Path):
     recognizer = cv2.face.LBPHFaceRecognizer_create()
     recognizer.read(str(model_path))
 
-    labels = json.loads(labels_path.read_text(encoding="utf-8"))
-    labels = {int(label_id): name for label_id, name in labels.items()}
+    labels = load_labels(labels_path)
     return recognizer, labels
+
+
+def load_labels(labels_path: Path) -> dict[int, str]:
+    try:
+        raw_labels = json.loads(labels_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"Labels file {labels_path} is not valid JSON.") from exc
+
+    if not isinstance(raw_labels, dict):
+        raise RuntimeError(f"Labels file {labels_path} must contain a JSON object.")
+
+    labels: dict[int, str] = {}
+    for label_id, name in raw_labels.items():
+        try:
+            labels[int(label_id)] = str(name)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"Labels file {labels_path} contains a non-numeric label id: {label_id!r}."
+            ) from exc
+
+    return labels
 
 
 def main() -> None:
