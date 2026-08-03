@@ -31,6 +31,16 @@ def assert_rejects_bad_labels(path: Path) -> None:
         raise AssertionError("Expected invalid label ids to fail.")
 
 
+def assert_rejects_empty_labels(path: Path) -> None:
+    try:
+        load_labels(path)
+    except RuntimeError as exc:
+        if "does not contain any labels" not in str(exc):
+            raise AssertionError(f"Unexpected empty-label error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected empty label files to fail.")
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -48,6 +58,10 @@ def main() -> None:
         bad_labels_path = temp_path / "bad-labels.json"
         bad_labels_path.write_text('{"person": "Alice"}', encoding="utf-8")
         assert_rejects_bad_labels(bad_labels_path)
+
+        empty_labels_path = temp_path / "empty-labels.json"
+        empty_labels_path.write_text("{}", encoding="utf-8")
+        assert_rejects_empty_labels(empty_labels_path)
 
     print("Smoke checks passed.")
 

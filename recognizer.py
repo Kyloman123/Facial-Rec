@@ -49,6 +49,8 @@ def load_labels(labels_path: Path) -> dict[int, str]:
 
     if not isinstance(raw_labels, dict):
         raise RuntimeError(f"Labels file {labels_path} must contain a JSON object.")
+    if not raw_labels:
+        raise RuntimeError(f"Labels file {labels_path} does not contain any labels.")
 
     labels: dict[int, str] = {}
     for label_id, name in raw_labels.items():
