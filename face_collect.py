@@ -12,11 +12,18 @@ DEFAULT_OUTPUT_DIR = Path("data/faces")
 FACE_SIZE = (150, 150)
 
 
+def non_negative_int(value: str) -> int:
+    camera_index = int(value)
+    if camera_index < 0:
+        raise argparse.ArgumentTypeError("camera index must be zero or greater")
+    return camera_index
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Collect face images from a webcam.")
     parser.add_argument("--name", required=True, help="Label for the person being recorded.")
     parser.add_argument("--samples", type=int, default=80, help="Number of face samples to save.")
-    parser.add_argument("--camera", type=int, default=0, help="Webcam index.")
+    parser.add_argument("--camera", type=non_negative_int, default=0, help="Webcam index.")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     args = parser.parse_args()
     if args.samples < 1:

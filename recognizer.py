@@ -14,6 +14,13 @@ DEFAULT_LABELS_PATH = Path("models/face_labels.json")
 FACE_SIZE = (150, 150)
 
 
+def non_negative_int(value: str) -> int:
+    camera_index = int(value)
+    if camera_index < 0:
+        raise argparse.ArgumentTypeError("camera index must be zero or greater")
+    return camera_index
+
+
 def non_negative_float(value: str) -> float:
     threshold = float(value)
     if threshold < 0:
@@ -23,7 +30,7 @@ def non_negative_float(value: str) -> float:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run live face recognition.")
-    parser.add_argument("--camera", type=int, default=0, help="Webcam index.")
+    parser.add_argument("--camera", type=non_negative_int, default=0, help="Webcam index.")
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
     parser.add_argument("--labels", type=Path, default=DEFAULT_LABELS_PATH)
     parser.add_argument(
