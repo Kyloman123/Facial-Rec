@@ -21,6 +21,18 @@ def assert_raises_runtime_error(path: Path) -> None:
         raise AssertionError("Expected missing training data directory to fail.")
 
 
+def assert_rejects_empty_person_folder(path: Path) -> None:
+    person_dir = path / "Alice"
+    person_dir.mkdir(parents=True)
+    try:
+        load_training_data(path)
+    except RuntimeError as exc:
+        if "No readable training images found" not in str(exc):
+            raise AssertionError(f"Unexpected empty-folder error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected empty person training folder to fail.")
+
+
 def assert_rejects_bad_labels(path: Path) -> None:
     try:
         load_labels(path)
@@ -54,6 +66,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
         assert_raises_runtime_error(temp_path / "missing-faces")
+        assert_rejects_empty_person_folder(temp_path / "faces")
 
         bad_labels_path = temp_path / "bad-labels.json"
         bad_labels_path.write_text('{"person": "Alice"}', encoding="utf-8")

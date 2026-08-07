@@ -41,13 +41,21 @@ def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dic
         raise RuntimeError(f"No training folders found in {data_dir}.")
 
     for label_id, person_dir in enumerate(people):
-        labels[label_id] = person_dir.name
+        person_images: list[np.ndarray] = []
         for image_path in sorted(person_dir.glob("*")):
             image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             if image is None:
                 continue
-            images.append(cv2.resize(image, (150, 150)))
-            label_ids.append(label_id)
+            person_images.append(cv2.resize(image, (150, 150)))
+
+        if not person_images:
+            raise RuntimeError(
+                f"No readable training images found in {person_dir}."
+            )
+
+        labels[label_id] = person_dir.name
+        images.extend(person_images)
+        label_ids.extend([label_id] * len(person_images))
 
     if not images:
         raise RuntimeError(f"No readable training images found in {data_dir}.")
