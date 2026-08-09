@@ -9,6 +9,8 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+from opencv_utils import create_lbph_recognizer
+
 
 DEFAULT_DATA_DIR = Path("data/faces")
 DEFAULT_MODEL_PATH = Path("models/face_model.yml")
@@ -67,7 +69,7 @@ def main() -> None:
     args = parse_args()
     images, label_ids, labels = load_training_data(args.data_dir)
 
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer = create_lbph_recognizer()
     recognizer.train(images, np.array(label_ids))
 
     args.model.parent.mkdir(parents=True, exist_ok=True)

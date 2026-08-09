@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import json
 import tempfile
+from types import SimpleNamespace
 from pathlib import Path
 
 from face_collect import clean_label
 from face_train import load_training_data
+from opencv_utils import create_lbph_recognizer
 from recognizer import load_labels
 
 
@@ -53,6 +55,16 @@ def assert_rejects_empty_labels(path: Path) -> None:
         raise AssertionError("Expected empty label files to fail.")
 
 
+def assert_explains_missing_lbph() -> None:
+    try:
+        create_lbph_recognizer(SimpleNamespace())
+    except RuntimeError as exc:
+        if "opencv-contrib-python" not in str(exc):
+            raise AssertionError(f"Unexpected OpenCV setup error: {exc}") from exc
+    else:
+        raise AssertionError("Expected missing LBPH support to fail.")
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -62,6 +74,7 @@ def main() -> None:
     raw_labels = json.loads(labels_path.read_text(encoding="utf-8"))
     assert raw_labels == {"0": "Alice", "1": "Bob"}
     assert labels == {0: "Alice", 1: "Bob"}
+    assert_explains_missing_lbph()
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)

@@ -8,6 +8,8 @@ from pathlib import Path
 
 import cv2
 
+from opencv_utils import create_lbph_recognizer
+
 
 DEFAULT_MODEL_PATH = Path("models/face_model.yml")
 DEFAULT_LABELS_PATH = Path("models/face_labels.json")
@@ -48,7 +50,7 @@ def load_recognizer(model_path: Path, labels_path: Path):
             "Missing trained model files. Run `python face_train.py` first."
         )
 
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer = create_lbph_recognizer()
     recognizer.read(str(model_path))
 
     labels = load_labels(labels_path)
