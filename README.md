@@ -90,6 +90,15 @@ Run the non-camera smoke check after setup to verify the sample labels file and 
 python smoke_test.py
 ```
 
+## Webcam Troubleshooting
+
+If collection or recognition cannot open the webcam:
+
+- Confirm another app is not already using the camera.
+- Try a different camera index, such as `--camera 1` or `--camera 2`.
+- On macOS, allow camera access for the terminal app in **System Settings** -> **Privacy & Security** -> **Camera**.
+- If the OpenCV LBPH recognizer is missing, reinstall dependencies from `requirements.txt`; this project needs `opencv-contrib-python`.
+
 ## Privacy Notes
 
 Face images and trained model files can contain biometric information. They are intentionally excluded from Git by `.gitignore`.
