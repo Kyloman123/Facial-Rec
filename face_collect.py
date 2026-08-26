@@ -7,6 +7,8 @@ from pathlib import Path
 
 import cv2
 
+from opencv_utils import load_frontal_face_cascade
+
 
 DEFAULT_OUTPUT_DIR = Path("data/faces")
 FACE_SIZE = (150, 150)
@@ -44,9 +46,7 @@ def main() -> None:
     person_dir = args.output_dir / label
     person_dir.mkdir(parents=True, exist_ok=True)
 
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
+    face_cascade = load_frontal_face_cascade()
     camera = cv2.VideoCapture(args.camera)
     if not camera.isOpened():
         raise RuntimeError(f"Could not open camera index {args.camera}.")

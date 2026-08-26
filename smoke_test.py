@@ -9,7 +9,7 @@ from pathlib import Path
 
 from face_collect import clean_label
 from face_train import load_training_data
-from opencv_utils import create_lbph_recognizer
+from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels
 
 
@@ -65,6 +65,24 @@ def assert_explains_missing_lbph() -> None:
         raise AssertionError("Expected missing LBPH support to fail.")
 
 
+def assert_explains_missing_cascade() -> None:
+    class EmptyCascade:
+        def empty(self) -> bool:
+            return True
+
+    fake_cv = SimpleNamespace(
+        data=SimpleNamespace(haarcascades="/missing/"),
+        CascadeClassifier=lambda path: EmptyCascade(),
+    )
+    try:
+        load_frontal_face_cascade(fake_cv)
+    except RuntimeError as exc:
+        if "frontal face cascade" not in str(exc):
+            raise AssertionError(f"Unexpected cascade setup error: {exc}") from exc
+    else:
+        raise AssertionError("Expected missing face cascade to fail.")
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -75,6 +93,7 @@ def main() -> None:
     assert raw_labels == {"0": "Alice", "1": "Bob"}
     assert labels == {0: "Alice", 1: "Bob"}
     assert_explains_missing_lbph()
+    assert_explains_missing_cascade()
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)

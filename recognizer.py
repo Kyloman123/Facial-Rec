@@ -8,7 +8,7 @@ from pathlib import Path
 
 import cv2
 
-from opencv_utils import create_lbph_recognizer
+from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 
 
 DEFAULT_MODEL_PATH = Path("models/face_model.yml")
@@ -84,9 +84,7 @@ def main() -> None:
     args = parse_args()
     recognizer, labels = load_recognizer(args.model, args.labels)
 
-    face_cascade = cv2.CascadeClassifier(
-        cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
+    face_cascade = load_frontal_face_cascade()
     camera = cv2.VideoCapture(args.camera)
     if not camera.isOpened():
         raise RuntimeError(f"Could not open camera index {args.camera}.")
