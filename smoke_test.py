@@ -35,6 +35,19 @@ def assert_rejects_empty_person_folder(path: Path) -> None:
         raise AssertionError("Expected empty person training folder to fail.")
 
 
+def assert_rejects_non_image_person_folder(path: Path) -> None:
+    person_dir = path / "Alice"
+    person_dir.mkdir(parents=True)
+    (person_dir / "notes.txt").write_text("not a training image", encoding="utf-8")
+    try:
+        load_training_data(path)
+    except RuntimeError as exc:
+        if "No readable training images found" not in str(exc):
+            raise AssertionError(f"Unexpected non-image error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected non-image training folder to fail.")
+
+
 def assert_rejects_bad_labels(path: Path) -> None:
     try:
         load_labels(path)
@@ -99,6 +112,7 @@ def main() -> None:
         temp_path = Path(temp_dir)
         assert_raises_runtime_error(temp_path / "missing-faces")
         assert_rejects_empty_person_folder(temp_path / "faces")
+        assert_rejects_non_image_person_folder(temp_path / "non-image-faces")
 
         bad_labels_path = temp_path / "bad-labels.json"
         bad_labels_path.write_text('{"person": "Alice"}', encoding="utf-8")

@@ -15,6 +15,7 @@ from opencv_utils import create_lbph_recognizer
 DEFAULT_DATA_DIR = Path("data/faces")
 DEFAULT_MODEL_PATH = Path("models/face_model.yml")
 DEFAULT_LABELS_PATH = Path("models/face_labels.json")
+SUPPORTED_IMAGE_EXTENSIONS = {".bmp", ".jpeg", ".jpg", ".png", ".tif", ".tiff"}
 
 
 def parse_args() -> argparse.Namespace:
@@ -44,7 +45,11 @@ def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dic
 
     for label_id, person_dir in enumerate(people):
         person_images: list[np.ndarray] = []
-        for image_path in sorted(person_dir.glob("*")):
+        image_paths = (
+            path for path in person_dir.iterdir()
+            if path.is_file() and path.suffix.lower() in SUPPORTED_IMAGE_EXTENSIONS
+        )
+        for image_path in sorted(image_paths):
             image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
             if image is None:
                 continue
