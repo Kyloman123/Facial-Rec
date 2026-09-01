@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import json
+import argparse
 import tempfile
 from types import SimpleNamespace
 from pathlib import Path
 
-from face_collect import clean_label
+from face_collect import clean_label, positive_int
 from face_train import load_training_data
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels
@@ -68,6 +69,16 @@ def assert_rejects_empty_labels(path: Path) -> None:
         raise AssertionError("Expected empty label files to fail.")
 
 
+def assert_argparse_error(func, value: str, expected_message: str) -> None:
+    try:
+        func(value)
+    except argparse.ArgumentTypeError as exc:
+        if expected_message not in str(exc):
+            raise AssertionError(f"Unexpected parser error: {exc}") from exc
+    else:
+        raise AssertionError(f"Expected {value!r} to fail validation.")
+
+
 def assert_explains_missing_lbph() -> None:
     try:
         create_lbph_recognizer(SimpleNamespace())
@@ -99,6 +110,8 @@ def assert_explains_missing_cascade() -> None:
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
+    assert positive_int("1") == 1
+    assert_argparse_error(positive_int, "0", "at least 1")
 
     labels_path = Path("examples/face_labels.sample.json")
     labels = load_labels(labels_path)

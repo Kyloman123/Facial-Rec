@@ -21,16 +21,20 @@ def non_negative_int(value: str) -> int:
     return camera_index
 
 
+def positive_int(value: str) -> int:
+    count = int(value)
+    if count < 1:
+        raise argparse.ArgumentTypeError("sample count must be at least 1")
+    return count
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Collect face images from a webcam.")
     parser.add_argument("--name", required=True, help="Label for the person being recorded.")
-    parser.add_argument("--samples", type=int, default=80, help="Number of face samples to save.")
+    parser.add_argument("--samples", type=positive_int, default=80, help="Number of face samples to save.")
     parser.add_argument("--camera", type=non_negative_int, default=0, help="Webcam index.")
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
-    args = parser.parse_args()
-    if args.samples < 1:
-        parser.error("--samples must be at least 1.")
-    return args
+    return parser.parse_args()
 
 
 def clean_label(label: str) -> str:
