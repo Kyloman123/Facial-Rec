@@ -53,10 +53,20 @@ def assert_rejects_bad_labels(path: Path) -> None:
     try:
         load_labels(path)
     except RuntimeError as exc:
-        if "non-numeric label id" not in str(exc):
+        if "invalid label entry" not in str(exc):
             raise AssertionError(f"Unexpected label error message: {exc}") from exc
     else:
         raise AssertionError("Expected invalid label ids to fail.")
+
+
+def assert_rejects_blank_label_name(path: Path) -> None:
+    try:
+        load_labels(path)
+    except RuntimeError as exc:
+        if "invalid label entry" not in str(exc):
+            raise AssertionError(f"Unexpected blank-label error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected blank label names to fail.")
 
 
 def assert_rejects_empty_labels(path: Path) -> None:
@@ -130,6 +140,14 @@ def main() -> None:
         bad_labels_path = temp_path / "bad-labels.json"
         bad_labels_path.write_text('{"person": "Alice"}', encoding="utf-8")
         assert_rejects_bad_labels(bad_labels_path)
+
+        blank_label_path = temp_path / "blank-label.json"
+        blank_label_path.write_text('{"0": "  "}', encoding="utf-8")
+        assert_rejects_blank_label_name(blank_label_path)
+
+        padded_label_path = temp_path / "padded-label.json"
+        padded_label_path.write_text('{"0": " Alice "}', encoding="utf-8")
+        assert load_labels(padded_label_path) == {0: "Alice"}
 
         empty_labels_path = temp_path / "empty-labels.json"
         empty_labels_path.write_text("{}", encoding="utf-8")

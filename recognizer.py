@@ -71,10 +71,13 @@ def load_labels(labels_path: Path) -> dict[int, str]:
     labels: dict[int, str] = {}
     for label_id, name in raw_labels.items():
         try:
-            labels[int(label_id)] = str(name)
+            clean_name = str(name).strip()
+            if not clean_name:
+                raise ValueError("label name is empty")
+            labels[int(label_id)] = clean_name
         except ValueError as exc:
             raise RuntimeError(
-                f"Labels file {labels_path} contains a non-numeric label id: {label_id!r}."
+                f"Labels file {labels_path} contains an invalid label entry: {label_id!r}."
             ) from exc
 
     return labels
