@@ -64,6 +64,8 @@ models/face_model.yml
 models/face_labels.json
 ```
 
+The trainer reads common image files only: `.bmp`, `.jpeg`, `.jpg`, `.png`, `.tif`, and `.tiff`.
+
 See `examples/face_labels.sample.json` for the label format without using real face data.
 
 ## 3. Run Recognition
