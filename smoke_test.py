@@ -69,6 +69,16 @@ def assert_rejects_blank_label_name(path: Path) -> None:
         raise AssertionError("Expected blank label names to fail.")
 
 
+def assert_rejects_duplicate_label_ids(path: Path) -> None:
+    try:
+        load_labels(path)
+    except RuntimeError as exc:
+        if "invalid label entry" not in str(exc):
+            raise AssertionError(f"Unexpected duplicate-label error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected duplicate numeric label ids to fail.")
+
+
 def assert_rejects_empty_labels(path: Path) -> None:
     try:
         load_labels(path)
@@ -144,6 +154,16 @@ def main() -> None:
         blank_label_path = temp_path / "blank-label.json"
         blank_label_path.write_text('{"0": "  "}', encoding="utf-8")
         assert_rejects_blank_label_name(blank_label_path)
+
+        duplicate_label_path = temp_path / "duplicate-label.json"
+        duplicate_label_path.write_text(
+            '{"1": "Alice", "01": "Bob"}', encoding="utf-8"
+        )
+        assert_rejects_duplicate_label_ids(duplicate_label_path)
+
+        negative_label_path = temp_path / "negative-label.json"
+        negative_label_path.write_text('{"-1": "Alice"}', encoding="utf-8")
+        assert_rejects_bad_labels(negative_label_path)
 
         padded_label_path = temp_path / "padded-label.json"
         padded_label_path.write_text('{"0": " Alice "}', encoding="utf-8")

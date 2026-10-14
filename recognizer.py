@@ -71,10 +71,15 @@ def load_labels(labels_path: Path) -> dict[int, str]:
     labels: dict[int, str] = {}
     for label_id, name in raw_labels.items():
         try:
+            numeric_label_id = int(label_id)
+            if numeric_label_id < 0:
+                raise ValueError("label id is negative")
+            if numeric_label_id in labels:
+                raise ValueError("label id is duplicated")
             clean_name = str(name).strip()
             if not clean_name:
                 raise ValueError("label name is empty")
-            labels[int(label_id)] = clean_name
+            labels[numeric_label_id] = clean_name
         except ValueError as exc:
             raise RuntimeError(
                 f"Labels file {labels_path} contains an invalid label entry: {label_id!r}."
