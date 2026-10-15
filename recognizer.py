@@ -45,9 +45,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_recognizer(model_path: Path, labels_path: Path):
-    if not model_path.exists() or not labels_path.exists():
+    if not model_path.is_file() or not labels_path.is_file():
         raise FileNotFoundError(
-            "Missing trained model files. Run `python face_train.py` first."
+            "Missing or invalid trained model files. Run `python face_train.py` first."
         )
 
     recognizer = create_lbph_recognizer()

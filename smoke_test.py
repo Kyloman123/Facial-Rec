@@ -11,7 +11,7 @@ from pathlib import Path
 from face_collect import clean_label, positive_int
 from face_train import load_training_data
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
-from recognizer import load_labels
+from recognizer import load_labels, load_recognizer
 
 
 def assert_raises_runtime_error(path: Path) -> None:
@@ -87,6 +87,21 @@ def assert_rejects_empty_labels(path: Path) -> None:
             raise AssertionError(f"Unexpected empty-label error message: {exc}") from exc
     else:
         raise AssertionError("Expected empty label files to fail.")
+
+
+def assert_rejects_invalid_model_paths(path: Path) -> None:
+    path.mkdir()
+    model_dir = path / "model.yml"
+    labels_dir = path / "labels.json"
+    model_dir.mkdir()
+    labels_dir.mkdir()
+    try:
+        load_recognizer(model_dir, labels_dir)
+    except FileNotFoundError as exc:
+        if "Missing or invalid trained model files" not in str(exc):
+            raise AssertionError(f"Unexpected model-path error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected model directories to fail validation.")
 
 
 def assert_argparse_error(func, value: str, expected_message: str) -> None:
@@ -172,6 +187,8 @@ def main() -> None:
         empty_labels_path = temp_path / "empty-labels.json"
         empty_labels_path.write_text("{}", encoding="utf-8")
         assert_rejects_empty_labels(empty_labels_path)
+
+        assert_rejects_invalid_model_paths(temp_path / "invalid-model-paths")
 
     print("Smoke checks passed.")
 
