@@ -8,7 +8,7 @@ import tempfile
 from types import SimpleNamespace
 from pathlib import Path
 
-from face_collect import clean_label, positive_int
+from face_collect import clean_label, positive_int, save_face
 from face_train import load_training_data
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels, load_recognizer
@@ -142,6 +142,17 @@ def assert_explains_missing_cascade() -> None:
         raise AssertionError("Expected missing face cascade to fail.")
 
 
+def assert_reports_failed_sample_write(path: Path) -> None:
+    fake_cv = SimpleNamespace(imwrite=lambda output_path, image: False)
+    try:
+        save_face(object(), path, fake_cv)
+    except RuntimeError as exc:
+        if str(path) not in str(exc):
+            raise AssertionError(f"Unexpected sample-write error: {exc}") from exc
+    else:
+        raise AssertionError("Expected a failed face sample write to raise an error.")
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -155,6 +166,7 @@ def main() -> None:
     assert labels == {0: "Alice", 1: "Bob"}
     assert_explains_missing_lbph()
     assert_explains_missing_cascade()
+    assert_reports_failed_sample_write(Path("data/faces/Alice/Alice_0000.png"))
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)

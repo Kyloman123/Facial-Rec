@@ -44,6 +44,11 @@ def clean_label(label: str) -> str:
     return cleaned
 
 
+def save_face(image, output_path: Path, cv_module=cv2) -> None:
+    if not cv_module.imwrite(str(output_path), image):
+        raise RuntimeError(f"Could not save face sample to {output_path}.")
+
+
 def main() -> None:
     args = parse_args()
     label = clean_label(args.name)
@@ -71,7 +76,7 @@ def main() -> None:
             for x, y, w, h in faces:
                 face = cv2.resize(gray[y : y + h, x : x + w], FACE_SIZE)
                 output_path = person_dir / f"{label}_{saved:04d}.png"
-                cv2.imwrite(str(output_path), face)
+                save_face(face, output_path)
                 saved += 1
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 200, 255), 2)
