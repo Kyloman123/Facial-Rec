@@ -49,6 +49,17 @@ def save_face(image, output_path: Path, cv_module=cv2) -> None:
         raise RuntimeError(f"Could not save face sample to {output_path}.")
 
 
+def next_sample_path(
+    person_dir: Path, label: str, start_index: int = 0
+) -> tuple[Path, int]:
+    sample_index = start_index
+    while True:
+        output_path = person_dir / f"{label}_{sample_index:04d}.png"
+        if not output_path.exists():
+            return output_path, sample_index
+        sample_index += 1
+
+
 def main() -> None:
     args = parse_args()
     label = clean_label(args.name)
@@ -61,6 +72,7 @@ def main() -> None:
         raise RuntimeError(f"Could not open camera index {args.camera}.")
 
     saved = 0
+    sample_index = 0
     print("Collecting faces. Press q to stop early.")
 
     try:
@@ -75,9 +87,12 @@ def main() -> None:
 
             for x, y, w, h in faces:
                 face = cv2.resize(gray[y : y + h, x : x + w], FACE_SIZE)
-                output_path = person_dir / f"{label}_{saved:04d}.png"
+                output_path, sample_index = next_sample_path(
+                    person_dir, label, sample_index
+                )
                 save_face(face, output_path)
                 saved += 1
+                sample_index += 1
 
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 200, 255), 2)
                 cv2.putText(

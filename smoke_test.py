@@ -8,7 +8,7 @@ import tempfile
 from types import SimpleNamespace
 from pathlib import Path
 
-from face_collect import clean_label, positive_int, save_face
+from face_collect import clean_label, next_sample_path, positive_int, save_face
 from face_train import load_training_data
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels, load_recognizer
@@ -153,6 +153,15 @@ def assert_reports_failed_sample_write(path: Path) -> None:
         raise AssertionError("Expected a failed face sample write to raise an error.")
 
 
+def assert_preserves_existing_samples(path: Path) -> None:
+    path.mkdir()
+    (path / "Alice_0000.png").touch()
+    (path / "Alice_0002.png").touch()
+    output_path, sample_index = next_sample_path(path, "Alice")
+    assert output_path == path / "Alice_0001.png"
+    assert sample_index == 1
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -170,6 +179,7 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
+        assert_preserves_existing_samples(temp_path / "existing-samples")
         assert_raises_runtime_error(temp_path / "missing-faces")
         assert_rejects_empty_person_folder(temp_path / "faces")
         assert_rejects_non_image_person_folder(temp_path / "non-image-faces")
