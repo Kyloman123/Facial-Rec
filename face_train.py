@@ -26,6 +26,11 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def validate_output_paths(model_path: Path, labels_path: Path) -> None:
+    if model_path.resolve() == labels_path.resolve():
+        raise RuntimeError("Model and labels outputs must use different files.")
+
+
 def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dict[int, str]]:
     images: list[np.ndarray] = []
     label_ids: list[int] = []
@@ -72,6 +77,7 @@ def load_training_data(data_dir: Path) -> tuple[list[np.ndarray], list[int], dic
 
 def main() -> None:
     args = parse_args()
+    validate_output_paths(args.model, args.labels)
     images, label_ids, labels = load_training_data(args.data_dir)
 
     recognizer = create_lbph_recognizer()

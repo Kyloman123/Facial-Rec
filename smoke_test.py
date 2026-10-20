@@ -9,7 +9,7 @@ from types import SimpleNamespace
 from pathlib import Path
 
 from face_collect import clean_label, next_sample_path, positive_int, save_face
-from face_train import load_training_data
+from face_train import load_training_data, validate_output_paths
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels, load_recognizer
 
@@ -104,6 +104,16 @@ def assert_rejects_invalid_model_paths(path: Path) -> None:
         raise AssertionError("Expected model directories to fail validation.")
 
 
+def assert_rejects_shared_model_output(path: Path) -> None:
+    try:
+        validate_output_paths(path, path.parent / "." / path.name)
+    except RuntimeError as exc:
+        if "must use different files" not in str(exc):
+            raise AssertionError(f"Unexpected output-path error message: {exc}") from exc
+    else:
+        raise AssertionError("Expected shared model and label output to fail.")
+
+
 def assert_argparse_error(func, value: str, expected_message: str) -> None:
     try:
         func(value)
@@ -176,6 +186,7 @@ def main() -> None:
     assert_explains_missing_lbph()
     assert_explains_missing_cascade()
     assert_reports_failed_sample_write(Path("data/faces/Alice/Alice_0000.png"))
+    assert_rejects_shared_model_output(Path("models/output.yml"))
 
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_path = Path(temp_dir)
