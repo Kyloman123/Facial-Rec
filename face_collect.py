@@ -60,6 +60,16 @@ def next_sample_path(
         sample_index += 1
 
 
+def read_camera_frame(camera, camera_index: int, saved: int, target: int):
+    ok, frame = camera.read()
+    if not ok:
+        raise RuntimeError(
+            f"Camera index {camera_index} stopped returning frames after "
+            f"{saved} of {target} samples."
+        )
+    return frame
+
+
 def main() -> None:
     args = parse_args()
     label = clean_label(args.name)
@@ -77,9 +87,7 @@ def main() -> None:
 
     try:
         while saved < args.samples:
-            ok, frame = camera.read()
-            if not ok:
-                break
+            frame = read_camera_frame(camera, args.camera, saved, args.samples)
 
             frame = cv2.flip(frame, 1)
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)

@@ -8,7 +8,13 @@ import tempfile
 from types import SimpleNamespace
 from pathlib import Path
 
-from face_collect import clean_label, next_sample_path, positive_int, save_face
+from face_collect import (
+    clean_label,
+    next_sample_path,
+    positive_int,
+    read_camera_frame,
+    save_face,
+)
 from face_train import load_training_data, validate_output_paths
 from opencv_utils import create_lbph_recognizer, load_frontal_face_cascade
 from recognizer import load_labels, load_recognizer
@@ -172,6 +178,17 @@ def assert_preserves_existing_samples(path: Path) -> None:
     assert sample_index == 1
 
 
+def assert_reports_camera_read_failure() -> None:
+    camera = SimpleNamespace(read=lambda: (False, None))
+    try:
+        read_camera_frame(camera, camera_index=1, saved=12, target=80)
+    except RuntimeError as exc:
+        if "Camera index 1" not in str(exc) or "12 of 80" not in str(exc):
+            raise AssertionError(f"Unexpected camera-read error: {exc}") from exc
+    else:
+        raise AssertionError("Expected a failed camera read to raise an error.")
+
+
 def main() -> None:
     assert clean_label(" Kylo Dev! ") == "KyloDev"
     assert clean_label("person_01-test") == "person_01-test"
@@ -186,6 +203,7 @@ def main() -> None:
     assert_explains_missing_lbph()
     assert_explains_missing_cascade()
     assert_reports_failed_sample_write(Path("data/faces/Alice/Alice_0000.png"))
+    assert_reports_camera_read_failure()
     assert_rejects_shared_model_output(Path("models/output.yml"))
 
     with tempfile.TemporaryDirectory() as temp_dir:
